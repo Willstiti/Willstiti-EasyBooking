@@ -1,0 +1,21 @@
+# Maven - Backend Java/Spring Boot
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/.springBeans
+backend/.sts4-cache/
+backend/.idea/
+
+backend/src/main/resources/application.properties
+
+# Fichiers compilés Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
