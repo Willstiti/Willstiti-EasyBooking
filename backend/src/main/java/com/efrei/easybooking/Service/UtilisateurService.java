@@ -9,14 +9,18 @@ import java.util.List;
 @Service
 public class UtilisateurService {
 
-    private UtilisateurRepository utilisateurRepository;
+    private final UtilisateurRepository utilisateurRepository;
 
-    public Utilisateur GetUser(Long id) {
+    public UtilisateurService(UtilisateurRepository utilisateurRepository) {
+        this.utilisateurRepository = utilisateurRepository;
+    }
+
+    public Utilisateur getUser(Long id) {
         return utilisateurRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
     }
 
-    public List<Utilisateur> GetAllUsers() {
+    public List<Utilisateur> getAllUsers() {
         return utilisateurRepository.findAll();
     }
 }

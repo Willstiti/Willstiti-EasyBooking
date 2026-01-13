@@ -1,14 +1,12 @@
 package com.efrei.easybooking.Entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class Utilisateur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,6 +15,6 @@ public class Utilisateur {
     private String email;
     private String password;
 
-    @ManyToMany
+    @OneToMany(mappedBy = "utilisateur")
     private List<Reservation> reservations;
 }

@@ -1,14 +1,12 @@
 package com.efrei.easybooking.Entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class Salle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

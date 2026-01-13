@@ -13,7 +13,7 @@ public class AuthService {
         this.utilisateurRepository = utilisateurRepository;
     }
 
-    public Utilisateur Login (String email, String password) {
+    public Utilisateur login(String email, String password) {
         return utilisateurRepository.findByEmail(email)
                 .filter(user -> user.getPassword().equals(password))
                 .orElseThrow(() -> new RuntimeException("Identifiants incorrects"));
@@ -31,4 +31,3 @@ public class AuthService {
         return utilisateurRepository.save(user);
     }
 }
-
