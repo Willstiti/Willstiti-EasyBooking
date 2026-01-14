@@ -1,9 +1,15 @@
 package com.efrei.easybooking.Entity;
 
-import jakarta.persistence.*;
-import lombok.Data;
-
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import lombok.Data;
 
 @Entity
 @Data
@@ -16,5 +22,6 @@ public class Salle {
     private String location;
 
     @OneToMany(mappedBy = "salle")
-    private List<Reservation> reservations ;
+    @JsonIgnore // on n'expose pas les réservations pour éviter la boucle Salle -> Reservation -> Salle ...
+    private List<Reservation> reservations;
 }

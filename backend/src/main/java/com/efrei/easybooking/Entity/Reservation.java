@@ -2,6 +2,8 @@ package com.efrei.easybooking.Entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,9 +24,11 @@ public class Reservation {
 
     @ManyToOne
     @JoinColumn(name = "utilisateur_id", nullable = false)
+    @JsonIgnoreProperties("reservations") // on ignore la liste des réservations côté JSON
     private Utilisateur utilisateur;
 
     @ManyToOne
     @JoinColumn(name = "salle_id", nullable = false)
+    @JsonIgnoreProperties("reservations")
     private Salle salle;
 }
