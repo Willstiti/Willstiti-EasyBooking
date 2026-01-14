@@ -85,9 +85,11 @@ function App() {
     setError("");
     try {
       const data = await api.getSalles();
-      setSalles(data || []);
-      if (!selectedSalleId && data && data.length > 0) {
-        setSelectedSalleId(String(data[0].id));
+      // On s'assure que salles est toujours un tableau
+      const list = Array.isArray(data) ? data : [];
+      setSalles(list);
+      if (!selectedSalleId && list.length > 0) {
+        setSelectedSalleId(String(list[0].id));
       }
     } catch (err) {
       setError(err.message);
