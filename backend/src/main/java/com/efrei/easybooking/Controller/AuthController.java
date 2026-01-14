@@ -24,17 +24,16 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterDTO registerDTO) {
-        authService.register(registerDTO.getEmail(), registerDTO.getPassword());
+        authService.register(registerDTO.email(), registerDTO.password());
         return ResponseEntity.status(HttpStatus.CREATED).body("Compte créé avec succès");
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO, HttpSession session) {
-        Utilisateur user = authService.login(loginDTO.getEmail(), loginDTO.getPassword());
+        Utilisateur user = authService.login(loginDTO.email(), loginDTO.password());
         
         session.setAttribute("userId", user.getId());
         session.setAttribute("email", user.getEmail());
-        
         return ResponseEntity.ok("Connexion réussie");
     }
 
