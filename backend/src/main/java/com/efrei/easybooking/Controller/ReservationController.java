@@ -1,14 +1,19 @@
 package com.efrei.easybooking.Controller;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.efrei.easybooking.DTO.ReservationDTO;
 import com.efrei.easybooking.Entity.Reservation;
 import com.efrei.easybooking.Service.ReservationService;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 public class ReservationController {
@@ -28,10 +33,10 @@ public class ReservationController {
 
         try {
             reservationService.creerReservation(
-                reservationDTO.getSalleId(), 
+                reservationDTO.salleId(), 
                 userId, 
-                reservationDTO.getDateDebut(), 
-                reservationDTO.getDateFin()
+                reservationDTO.dateDebut(), 
+                reservationDTO.dateFin()
             );
             return ResponseEntity.status(HttpStatus.CREATED).body("Réservation créée avec succès");
         } catch (RuntimeException e) {
