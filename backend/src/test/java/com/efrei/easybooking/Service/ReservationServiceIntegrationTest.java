@@ -253,6 +253,23 @@ class ReservationServiceIntegrationTest {
 
     @Test
     @Transactional
+    void CreerReservationLanceExceptionQuandDateDebutApresDateFin() {
+        LocalDateTime dateDebut = LocalDateTime.of(2026, 1, 15, 14, 0);
+        LocalDateTime dateFin = LocalDateTime.of(2026, 1, 15, 10, 0);
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> reservationService.creerReservation(
+                        salle.getId(),
+                        utilisateur.getId(),
+                        dateDebut,
+                        dateFin
+                ));
+
+        assertEquals("La date de début doit être avant la date de fin", exception.getMessage());
+    }
+
+    @Test
+    @Transactional
     void GetReservationsByUserRetourneListeReservationsQuandUtilisateurExiste() {
         LocalDateTime dateDebut1 = LocalDateTime.of(2026, 1, 15, 10, 0);
         LocalDateTime dateFin1 = LocalDateTime.of(2026, 1, 15, 12, 0);

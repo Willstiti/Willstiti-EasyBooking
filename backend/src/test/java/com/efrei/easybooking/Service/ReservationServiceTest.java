@@ -225,6 +225,34 @@ class ReservationServiceTest {
     }
 
     @Test
+    void CreerReservationLanceExceptionQuandDateDebutApresDateFin() {
+        Long salleId = 1L;
+        Long userId = 1L;
+        LocalDateTime dateDebut = LocalDateTime.of(2026, 1, 15, 14, 0);
+        LocalDateTime dateFin = LocalDateTime.of(2026, 1, 15, 10, 0);
+
+        Salle salle = new Salle();
+        salle.setId(salleId);
+        salle.setNom("Salle A");
+
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.setId(userId);
+        utilisateur.setEmail("test@test.com");
+
+        when(salleRepository.findById(eq(salleId)))
+                .thenReturn(Optional.of(salle));
+        when(utilisateurRepository.findById(eq(userId)))
+                .thenReturn(Optional.of(utilisateur));
+
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> reservationService.creerReservation(salleId, userId, dateDebut, dateFin));
+
+        assertEquals("La date de début doit être avant la date de fin", exception.getMessage());
+        verify(salleRepository).findById(salleId);
+        verify(utilisateurRepository).findById(userId);
+    }
+
+    @Test
     void CreerReservationReussitQuandReservationAutreSalle() {
         Long salleId = 1L;
         Long autreSalleId = 2L;

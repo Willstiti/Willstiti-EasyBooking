@@ -27,6 +27,10 @@ public class ReservationService {
     }
 
     public Reservation creerReservation(Long salleId, Long userId, LocalDateTime dateDebut, LocalDateTime dateFin) {
+        if (dateDebut.isAfter(dateFin) || dateDebut.isEqual(dateFin)) {
+            throw new RuntimeException("La date de début doit être avant la date de fin");
+        }
+
         Salle salle = salleRepository.findById(salleId)
                 .orElseThrow(() -> new RuntimeException("Salle non trouvée"));
         
