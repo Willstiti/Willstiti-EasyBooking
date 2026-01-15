@@ -22,13 +22,13 @@ Ce dépôt contient au minimum le **backend** dans le dossier `backend/`.
 
 Le backend dispose d’une suite de tests structurée en plusieurs niveaux :
 
-- **Tests unitaires** : services testés isolément avec des mocks (ex. `ReservationServiceTest`, `AuthServiceTest`).  
-- **Tests d’intégration** : services testés avec le contexte Spring complet et une base de données de test (ex. `ReservationServiceIntegrationTest`).  
-- **Tests de performance** : mesure du temps d’exécution de scénarios critiques (`AuthServicePerformanceTest`, `ReservationServicePerformanceTest`).  
-- **Tests système / API** : tests de contrôleurs via `MockMvc` (`AuthControllerSystemTest`).  
-- **Test de démarrage global** : `EasyBookingApplicationTests` vérifie que le contexte Spring démarre correctement.
+- **Tests unitaires** : services testés isolément avec des mocks (ex. `ReservationServiceTest`, `AuthServiceTest`) – **16 tests**.  
+- **Tests d’intégration** : services testés avec le contexte Spring complet et une base de données de test (ex. `ReservationServiceIntegrationTest`) – **13 tests**.  
+- **Tests de performance** : mesure du temps d’exécution de scénarios critiques (`AuthServicePerformanceTest`, `ReservationServicePerformanceTest`) – **15 tests**.  
+- **Tests système / API** : tests de contrôleurs via `MockMvc` (`AuthControllerSystemTest`) – **10 tests**.  
+- **Test de démarrage global** : `EasyBookingApplicationTests` vérifie que le contexte Spring démarre correctement – **1 test**.
 
-Nombre total de tests : **47** méthodes annotées `@Test` dans `backend/src/test/java`.
+Nombre total de tests : **55** méthodes annotées `@Test` dans `backend/src/test/java`.
 
 Pour un **détail complet des tests backend** (tableaux par classe de test, description de chaque méthode de test et de son comportement attendu), se référer à la section suivante.
 
@@ -58,18 +58,20 @@ Le contenu ci-dessous provient du fichier `backend/README.md` et est recopié ic
 
 Les tests sont dans `src/test/java/com/efrei/easybooking` et couvrent plusieurs niveaux :
 
-- **Tests unitaires (services isolés avec mocks)**  
+- **Tests unitaires (services isolés avec mocks)** – **16 tests**  
   - `ReservationServiceTest`  
   - `AuthServiceTest`
-- **Tests d’intégration (service + JPA + base de données de test)**  
+- **Tests d’intégration (service + JPA + base de données de test)** – **13 tests**  
   - `ReservationServiceIntegrationTest`
-- **Tests de performance (temps d’exécution)**  
+- **Tests de performance (temps d’exécution)** – **15 tests**  
   - `AuthServicePerformanceTest`  
   - `ReservationServicePerformanceTest`
-- **Tests système / API (MockMvc)**  
+- **Tests système / API (MockMvc)** – **10 tests**  
   - `AuthControllerSystemTest`
+- **Test de démarrage global** – **1 test**  
+  - `EasyBookingApplicationTests` (`contextLoads`)
 
-Nombre total de tests : **56** méthodes annotées `@Test`.
+Nombre total de tests : **55** méthodes annotées `@Test`.
 
 ---
 
