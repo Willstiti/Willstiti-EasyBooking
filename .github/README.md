@@ -2,7 +2,7 @@
 
 ### 1. Présentation
 
-EasyBooking est une application de réservation de salles, construite avec un backend Java/Spring Boot et (potentiellement) un frontend séparé.  
+EasyBooking est une application de réservation de salles, construite avec un backend Java/Spring Boot et un frontend en React séparé.  
 Ce dépôt contient au minimum le **backend** dans le dossier `backend/`.
 
 ### 2. Structure du dépôt
