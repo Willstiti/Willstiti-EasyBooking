@@ -3,22 +3,22 @@
 ### 1. Présentation
 
 EasyBooking est une application de réservation de salles, construite avec un backend Java/Spring Boot et un frontend en React séparé.  
-Ce dépôt contient au minimum le **backend** dans le dossier `backend/`.
 
 ### 2. Structure du dépôt
 
 - `backend/` : application Spring Boot EasyBooking (API REST, services métier, accès base de données, tests).
+- `frontend/` : application pour le Front en React.
 - `.github/` : fichiers liés à GitHub (README spécifique GitHub, workflows éventuels, etc.).
 
 ### 3. Technologies principales (backend)
 
-- **Langage** : Java (Spring Boot)
+- **Langage** : Java (Spring Boot) & React
 - **Framework backend** : Spring Boot (injection de dépendances, configuration auto, tests `@SpringBootTest`)
 - **Web** : Spring Web MVC (`@RestController`, `@GetMapping`, `@PostMapping`, `@DeleteMapping`)
 - **Accès aux données** : Spring Data JPA (`ReservationRepository`, `SalleRepository`, `UtilisateurRepository`)
 - **Sécurité** : Spring Security (configurée dans `SecurityConfig`, filtres désactivés en profil `test` pour certains tests)
 
-### 4. Qualité & tests (synthèse backend)
+### 4. Qualité & tests 
 
 Le backend dispose d’une suite de tests structurée en plusieurs niveaux :
 
@@ -33,27 +33,9 @@ Pour un **détail complet des tests backend** (tableaux par classe de test, desc
 
 ---
 
-## Détail qualité backend
+## EasyBooking – Backend - Les Tests
 
-Le contenu ci-dessous provient du fichier `backend/README.md` et est recopié ici pour avoir une vue globale du projet, sans perte d’information.
-
-
-## EasyBooking – Backend
-
-### 1. Contexte et technologies
-
-- **Langage** : Java (Spring Boot)
-- **Framework backend** : Spring Boot (injection de dépendances, configuration auto, tests `@SpringBootTest`)
-- **Web** : Spring Web MVC (`@RestController`, `@GetMapping`, `@PostMapping`, `@DeleteMapping`)
-- **Accès aux données** : Spring Data JPA (`ReservationRepository`, `SalleRepository`, `UtilisateurRepository`)
-- **Sécurité** : Spring Security (configurée dans `SecurityConfig`, filtres désactivés en profil `test` pour certains tests)
-- **Structure principale** :
-  - **Controller** : `AuthController`, `ReservationController`, `SalleController`, `UtilisateurController`
-  - **Service** : `AuthService`, `ReservationService`, `SalleService`, `UtilisateurService`
-  - **DTO** : `LoginDTO`, `RegisterDTO`, `ReservationDTO`
-  - **Entités** : `Reservation`, `Salle`, `Utilisateur`
-
-### 2. Typologie des tests
+### 1. Typologie des tests
 
 Les tests sont dans `src/test/java/com/efrei/easybooking` et couvrent plusieurs niveaux :
 
@@ -68,7 +50,7 @@ Les tests sont dans `src/test/java/com/efrei/easybooking` et couvrent plusieurs 
 - **Tests système / API (MockMvc)** – **10 tests**  
   - `AuthControllerSystemTest`
 
-Nombre total de tests : **55** méthodes annotées `@Test`.
+Nombre total de tests : **55** 
 
 ---
 
