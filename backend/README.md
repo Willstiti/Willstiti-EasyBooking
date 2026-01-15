@@ -30,7 +30,7 @@ Les tests sont dans `src/test/java/com/efrei/easybooking` et couvrent plusieurs 
 - **Test de démarrage global**  
   - `EasyBookingApplicationTests` (`contextLoads`)
 
-Nombre total de tests : **47** méthodes annotées `@Test`.
+Nombre total de tests : **56** méthodes annotées `@Test`.
 
 ---
 
@@ -106,11 +106,14 @@ Les tests de performance mesurent le temps d’exécution de scénarios critique
 
 | Nom du test | Comportement attendu |
 |------------|----------------------|
-| `CreerReservationDoitEtreRapidePourUnUtilisateur` | Création d’une réservation simple doit respecter un temps maximum défini dans le test. |
-| `CreerReservationDoitGererPlusieursReservationsRapidement` | Série de créations de réservations (volume important) avec un temps moyen acceptable par réservation. |
-| `GetReservationsByUserDoitEtreRapideAvecBeaucoupDeDonnees` | Récupération des réservations d’un utilisateur très chargé reste sous un seuil de temps défini. |
-
-*(Les noms exacts peuvent varier, mais ces tests ont pour but de valider les performances sur la création et la lecture de réservations.)*
+| `creerReservationDoitEtreRapide` | Création d'une seule réservation doit prendre moins de 500 ms. |
+| `creerPlusieursReservationsPourDifferentesSalleDoitEtreRapide` | Création de 50 réservations sur différentes salles : temps moyen par réservation < 100 ms. |
+| `obtenirReservationsUtilisateurDoitEtreRapide` | Récupération des 30 réservations d'un utilisateur doit prendre moins de 200 ms. |
+| `supprimerReservationDoitEtreRapide` | Suppression d'une réservation doit prendre moins de 300 ms. |
+| `verifierConflitReservationDoitEtrePerformant` | Vérification de conflits avec 100 réservations existantes doit prendre moins de 1 seconde. |
+| `suppressionEnMasseDoitEtrePerformante` | Suppression de 20 réservations : temps moyen par suppression < 100 ms. |
+| `obtenirReservationsBySalleAndDateDoitEtreRapide` | Récupération des réservations par salle et date doit prendre moins de 300 ms. |
+| `creerReservationAvecVerificationConflitsDoitResterPerformant` | Création d'une réservation avec 10 réservations existantes doit prendre moins de 500 ms. |
 
 ---
 
