@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "./api";
 
 function App() {
-  const [view, setView] = useState("login"); // "login" | "register" | "app"
+  const [view, setView] = useState("login"); 
   const [activeTab, setActiveTab] = useState("salles");
 
   const [registerEmail, setRegisterEmail] = useState("");
@@ -20,6 +20,9 @@ function App() {
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedStartSlotIndex, setSelectedStartSlotIndex] = useState(null);
   const [selectedEndSlotIndex, setSelectedEndSlotIndex] = useState(null);
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("19:00");
+  const [existingReservations, setExistingReservations] = useState([]);
 
   const [reservations, setReservations] = useState([]);
   const [reservationsLoading, setReservationsLoading] = useState(false);
@@ -82,7 +85,6 @@ function App() {
     try {
       const data = await api.getSalles();
       console.log("API /salles response:", data);
-      // On s'assure que salles est toujours un tableau
       const list = Array.isArray(data) ? data : [];
       setSalles(list);
       if (!selectedSalleId && list.length > 0) {
@@ -109,13 +111,13 @@ function App() {
   };
 
   const handleCreateReservation = async (e) => {
-    // Conservée pour compatibilité mais non utilisée directement
     e?.preventDefault?.();
   };
 
   const loadSlots = async () => {
     if (!selectedSalleId || !reservationDate) {
       setAvailableSlots([]);
+      setExistingReservations([]);
       return;
     }
     setSlotsLoading(true);
@@ -125,6 +127,8 @@ function App() {
         Number(selectedSalleId),
         reservationDate
       );
+
+      setExistingReservations(reservationsSalle || []);
 
       const openingHour = 8;
       const closingHour = 18;
@@ -171,9 +175,12 @@ function App() {
       setAvailableSlots(slots);
       setSelectedStartSlotIndex(null);
       setSelectedEndSlotIndex(null);
+      setStartTime("08:00");
+      setEndTime("19:00");
     } catch (err) {
       setError(err.message);
       setAvailableSlots([]);
+      setExistingReservations([]);
     } finally {
       setSlotsLoading(false);
     }
@@ -188,35 +195,69 @@ function App() {
       setError("Veuillez choisir une salle et une date.");
       return;
     }
-    if (
-      selectedStartSlotIndex === null ||
-      selectedEndSlotIndex === null ||
-      availableSlots.length === 0
-    ) {
+    if (!startTime || !endTime) {
       setError("Veuillez choisir un créneau de début et un créneau de fin.");
       return;
     }
 
-    const startIndex = Math.min(selectedStartSlotIndex, selectedEndSlotIndex);
-    const endIndex = Math.max(selectedStartSlotIndex, selectedEndSlotIndex);
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+    
+    const startTotalMinutes = startHour * 60 + startMinute;
+    const endTotalMinutes = endHour * 60 + endMinute;
+    const minMinutes = 8 * 60; // 8h00
+    const maxMinutes = 19 * 60; // 19h00
 
-    const startSlot = availableSlots[startIndex];
-    const endSlot = availableSlots[endIndex];
+    if (startTotalMinutes < minMinutes || startTotalMinutes > maxMinutes) {
+      setError("L'heure de début doit être entre 8h00 et 19h00.");
+      return;
+    }
+    if (endTotalMinutes < minMinutes || endTotalMinutes > maxMinutes) {
+      setError("L'heure de fin doit être entre 8h00 et 19h00.");
+      return;
+    }
+    if (endTotalMinutes <= startTotalMinutes) {
+      setError("L'heure de fin doit être après l'heure de début.");
+      return;
+    }
 
-    setMessage("");
-    setError("");
+    const [year, month, day] = reservationDate.split("-").map((v) => Number(v));
+    const makeDate = (h, m) => new Date(year, month - 1, day, h, m, 0);
+    const startDate = makeDate(startHour, startMinute);
+    const endDate = makeDate(endHour, endMinute);
+
     try {
+      const reservationsSalle = await api.getReservationsForSalleAndDate(
+        Number(selectedSalleId),
+        reservationDate
+      );
+      const bookedIntervals = (reservationsSalle || []).map((r) => ({
+        start: new Date(r.dateDebut),
+        end: new Date(r.dateFin)
+      }));
+
+      const hasConflict = bookedIntervals.some(
+        (b) => startDate < b.end && endDate > b.start
+      );
+
+      if (hasConflict) {
+        setError("Ce créneau est déjà réservé. Veuillez choisir un autre horaire.");
+        return;
+      }
+
+      setMessage("");
+      setError("");
       const toBackend = (d) => d.toISOString().slice(0, 19);
       await api.createReservation(
         Number(selectedSalleId),
-        toBackend(startSlot.startDate),
-        toBackend(endSlot.endDate)
+        toBackend(startDate),
+        toBackend(endDate)
       );
       setMessage("Réservation créée avec succès.");
       await loadReservations();
       await loadSlots();
-      setSelectedStartSlotIndex(null);
-      setSelectedEndSlotIndex(null);
+      setStartTime("08:00");
+      setEndTime("19:00");
     } catch (err) {
       setError(err.message);
     }
@@ -438,73 +479,112 @@ function App() {
               {slotsLoading ? (
                 <p>Chargement des créneaux disponibles...</p>
               ) : reservationDate && selectedSalleId ? (
-                availableSlots.length === 0 ? (
-                  <p>Aucun créneau disponible pour cette date.</p>
-                ) : (
-                  <>
-                    <p style={{ fontSize: "0.85rem", marginBottom: "4px" }}>
-                      Créneau de début :
-                    </p>
+                <>
+                  {existingReservations.length > 0 && (
                     <div
                       style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "4px"
+                        marginBottom: "16px",
+                        padding: "12px",
+                        backgroundColor: "#f5f5f5",
+                        borderRadius: "4px",
+                        border: "1px solid #ddd"
                       }}
                     >
-                      {availableSlots.map((slot, index) => (
-                        <button
-                          key={`start-${slot.label}`}
-                          className={`btn secondary${
-                            selectedStartSlotIndex === index ? " slot-selected" : ""
-                          }`}
-                          type="button"
-                          onClick={() => setSelectedStartSlotIndex(index)}
-                        >
-                          {slot.label}
-                        </button>
-                      ))}
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "0.85rem",
-                        marginTop: "8px",
-                        marginBottom: "4px"
-                      }}
-                    >
-                      Créneau de fin :
-                    </p>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "4px"
-                      }}
-                    >
-                      {availableSlots.map((slot, index) => (
-                        <button
-                          key={`end-${slot.label}`}
-                          className={`btn secondary${
-                            selectedEndSlotIndex === index ? " slot-selected" : ""
-                          }`}
-                          type="button"
-                          onClick={() => setSelectedEndSlotIndex(index)}
-                        >
-                          {slot.label}
-                        </button>
-                      ))}
-                    </div>
-                    <div style={{ marginTop: "8px" }}>
-                      <button
-                        className="btn primary"
-                        type="button"
-                        onClick={handleConfirmRange}
+                      <p
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: "600",
+                          marginBottom: "8px",
+                          color: "#333"
+                        }}
                       >
-                        Réserver ce créneau
-                      </button>
+                        Horaires déjà réservés :
+                      </p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        {existingReservations.map((reservation, index) => {
+                          const startDate = new Date(reservation.dateDebut);
+                          const endDate = new Date(reservation.dateFin);
+                          const formatTime = (date) => {
+                            const hours = String(date.getHours()).padStart(2, "0");
+                            const minutes = String(date.getMinutes()).padStart(2, "0");
+                            return `${hours}:${minutes}`;
+                          };
+                          return (
+                            <div
+                              key={index}
+                              style={{
+                                fontSize: "0.85rem",
+                                color: "#d32f2f",
+                                padding: "4px 8px",
+                                backgroundColor: "#ffebee",
+                                borderRadius: "3px",
+                                borderLeft: "3px solid #d32f2f"
+                              }}
+                            >
+                              {formatTime(startDate)} - {formatTime(endDate)}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </>
-                )
+                  )}
+                  <label style={{ fontSize: "0.85rem", marginBottom: "4px", display: "block" }}>
+                    Créneau de début :
+                    <input
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      min="08:00"
+                      max="19:00"
+                      style={{
+                        marginTop: "4px",
+                        padding: "8px",
+                        fontSize: "1rem",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        width: "100%",
+                        maxWidth: "200px"
+                      }}
+                      required
+                    />
+                  </label>
+                  <label
+                    style={{
+                      fontSize: "0.85rem",
+                      marginTop: "12px",
+                      marginBottom: "4px",
+                      display: "block"
+                    }}
+                  >
+                    Créneau de fin :
+                    <input
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => setEndTime(e.target.value)}
+                      min="08:00"
+                      max="19:00"
+                      style={{
+                        marginTop: "4px",
+                        padding: "8px",
+                        fontSize: "1rem",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                        width: "100%",
+                        maxWidth: "200px"
+                      }}
+                      required
+                    />
+                  </label>
+                  <div style={{ marginTop: "16px" }}>
+                    <button
+                      className="btn primary"
+                      type="button"
+                      onClick={handleConfirmRange}
+                    >
+                      Réserver ce créneau
+                    </button>
+                  </div>
+                </>
               ) : (
                 <p>Sélectionnez une salle et une date pour voir les créneaux.</p>
               )}
