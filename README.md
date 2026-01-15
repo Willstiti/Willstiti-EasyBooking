@@ -68,8 +68,6 @@ Les tests sont dans `src/test/java/com/efrei/easybooking` et couvrent plusieurs 
   - `ReservationServicePerformanceTest`
 - **Tests système / API (MockMvc)**  
   - `AuthControllerSystemTest`
-- **Test de démarrage global**  
-  - `EasyBookingApplicationTests` (`contextLoads`)
 
 Nombre total de tests : **56** méthodes annotées `@Test`.
 
@@ -179,15 +177,7 @@ Des tests similaires pourraient être ajoutés pour les endpoints de réservatio
 
 ---
 
-### 7. Test de démarrage – `EasyBookingApplicationTests`
-
-| Nom du test | Comportement attendu |
-|------------|----------------------|
-| `contextLoads` | Vérifie que le contexte Spring Boot démarre sans erreur (sanity check global). |
-
----
-
-### 8. Synthèse qualité
+### 7. Synthèse qualité
 
 - **Couverture fonctionnelle** : les tests couvrent les principaux cas métier de l’authentification et des réservations, y compris les cas d’erreur (identifiants invalides, email déjà utilisé, créneaux de réservation qui se chevauchent, utilisateurs inexistants).  
 - **Multiniveau de tests** : unitaire, intégration, système et performance, ce qui permet de détecter aussi bien les erreurs de logique locale que les problèmes d’intégration ou de lenteur.  
