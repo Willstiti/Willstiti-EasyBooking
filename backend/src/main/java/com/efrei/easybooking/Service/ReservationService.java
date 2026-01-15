@@ -1,5 +1,6 @@
 package com.efrei.easybooking.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -70,5 +71,18 @@ public class ReservationService {
         }
 
         reservationRepository.delete(reservation);
+    }
+
+    public List<Reservation> getReservationsBySalleAndDate(Long salleId, LocalDate date) {
+        Salle salle = salleRepository.findById(salleId)
+                .orElseThrow(() -> new RuntimeException("Salle non trouvée"));
+
+        List<Reservation> reservations = reservationRepository.findBySalle(salle);
+
+        return reservations.stream()
+                .filter(r -> r.getDateDebut() != null && r.getDateFin() != null)
+                .filter(r -> r.getDateDebut().toLocalDate().equals(date) ||
+                             r.getDateFin().toLocalDate().equals(date))
+                .toList();
     }
 }

@@ -85,12 +85,6 @@ body {
   box-shadow: 0 22px 45px rgba(15, 23, 42, 0.9);
 }
 
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-}
-
 .card {
   background: radial-gradient(circle at top left, #1d4ed8 0, #020617 45%);
   border-radius: 14px;
@@ -137,6 +131,10 @@ body {
   gap: 10px;
 }
 
+.simple-form {
+  max-width: 400px;
+}
+
 label {
   display: flex;
   flex-direction: column;
@@ -181,6 +179,18 @@ select:focus {
   background: #020617;
   color: #e5e7eb;
   border: 1px solid #334155;
+}
+
+.btn.danger {
+  background: #ef4444;
+  border: 1px solid #b91c1c;
+  color: #fee2e2;
+}
+
+.slot-selected {
+  background: #2563eb;
+  border: 1px solid #60a5fa;
+  color: #f9fafb;
 }
 
 .btn:disabled {
@@ -231,6 +241,10 @@ select:focus {
   border-radius: 10px;
   background: #020617;
   border: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .list-item h3 {
@@ -242,6 +256,12 @@ select:focus {
   margin: 0;
   font-size: 0.85rem;
   color: #9ca3af;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 @media (max-width: 640px) {

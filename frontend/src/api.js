@@ -57,6 +57,9 @@ export const api = {
   deleteReservation: (id) =>
     request(`/reservations/${id}`, {
       method: "DELETE"
-    })
+    }),
+
+  getReservationsForSalleAndDate: (salleId, date) =>
+    request(`/reservations/salle/${salleId}?date=${encodeURIComponent(date)}`)
 };
 

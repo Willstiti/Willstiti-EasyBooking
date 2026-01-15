@@ -1,21 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
 
-function formatDateTimeLocal(value) {
-  if (!value) return "";
-  const date = new Date(value);
-  const pad = (n) => n.toString().padStart(2, "0");
-  const yyyy = date.getFullYear();
-  const MM = pad(date.getMonth() + 1);
-  const dd = pad(date.getDate());
-  const hh = pad(date.getHours());
-  const mm = pad(date.getMinutes());
-  return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
-}
-
 function App() {
-  const [activeTab, setActiveTab] = useState("auth");
-  const [activeAuthView, setActiveAuthView] = useState("login"); // "login" | "register"
+  const [view, setView] = useState("login"); // "login" | "register" | "app"
+  const [activeTab, setActiveTab] = useState("salles");
 
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
@@ -27,8 +15,11 @@ function App() {
   const [sallesLoading, setSallesLoading] = useState(false);
 
   const [selectedSalleId, setSelectedSalleId] = useState("");
-  const [dateDebut, setDateDebut] = useState("");
-  const [dateFin, setDateFin] = useState("");
+  const [reservationDate, setReservationDate] = useState("");
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [selectedStartSlotIndex, setSelectedStartSlotIndex] = useState(null);
+  const [selectedEndSlotIndex, setSelectedEndSlotIndex] = useState(null);
 
   const [reservations, setReservations] = useState([]);
   const [reservationsLoading, setReservationsLoading] = useState(false);
@@ -39,7 +30,7 @@ function App() {
   useEffect(() => {
     setMessage("");
     setError("");
-  }, [activeTab]);
+  }, [activeTab, view]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -49,6 +40,7 @@ function App() {
       await api.register(registerEmail, registerPassword);
       setMessage("Compte créé avec succès. Vous pouvez maintenant vous connecter.");
       setRegisterPassword("");
+      setView("login");
     } catch (err) {
       setError(err.message);
     }
@@ -63,6 +55,8 @@ function App() {
       setIsLoggedIn(true);
       setLoginPassword("");
       setMessage("Connexion réussie.");
+      setView("app");
+      setActiveTab("salles");
     } catch (err) {
       setError(err.message);
     }
@@ -75,6 +69,8 @@ function App() {
       await api.logout();
       setIsLoggedIn(false);
       setReservations([]);
+      setView("login");
+      setActiveTab("salles");
     } catch (err) {
       setError(err.message);
     }
@@ -113,29 +109,114 @@ function App() {
   };
 
   const handleCreateReservation = async (e) => {
-    e.preventDefault();
-    setMessage("");
+    // Conservée pour compatibilité mais non utilisée directement
+    e?.preventDefault?.();
+  };
+
+  const loadSlots = async () => {
+    if (!selectedSalleId || !reservationDate) {
+      setAvailableSlots([]);
+      return;
+    }
+    setSlotsLoading(true);
     setError("");
+    try {
+      const reservationsSalle = await api.getReservationsForSalleAndDate(
+        Number(selectedSalleId),
+        reservationDate
+      );
+
+      const openingHour = 8;
+      const closingHour = 18;
+      const slotDurationMinutes = 60;
+
+      const bookedIntervals = (reservationsSalle || []).map((r) => ({
+        start: new Date(r.dateDebut),
+        end: new Date(r.dateFin)
+      }));
+
+      const slots = [];
+      const [year, month, day] = reservationDate.split("-").map((v) => Number(v));
+
+      const makeDate = (h, m) => new Date(year, month - 1, day, h, m, 0);
+
+      for (
+        let minutes = openingHour * 60;
+        minutes + slotDurationMinutes <= closingHour * 60;
+        minutes += slotDurationMinutes
+      ) {
+        const startHour = Math.floor(minutes / 60);
+        const startMinute = minutes % 60;
+        const endMinutes = minutes + slotDurationMinutes;
+        const endHour = Math.floor(endMinutes / 60);
+        const endMinute = endMinutes % 60;
+
+        const startDate = makeDate(startHour, startMinute);
+        const endDate = makeDate(endHour, endMinute);
+
+        const overlaps = bookedIntervals.some(
+          (b) => startDate < b.end && endDate > b.start
+        );
+
+        if (!overlaps) {
+          const pad = (n) => String(n).padStart(2, "0");
+          slots.push({
+            label: `${pad(startHour)}:${pad(startMinute)} - ${pad(endHour)}:${pad(endMinute)}`,
+            startDate,
+            endDate
+          });
+        }
+      }
+
+      setAvailableSlots(slots);
+      setSelectedStartSlotIndex(null);
+      setSelectedEndSlotIndex(null);
+    } catch (err) {
+      setError(err.message);
+      setAvailableSlots([]);
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
+  const handleConfirmRange = async () => {
     if (!isLoggedIn) {
       setError("Vous devez être connecté pour réserver une salle.");
       return;
     }
-    if (!selectedSalleId || !dateDebut || !dateFin) {
-      setError("Veuillez remplir tous les champs.");
+    if (!selectedSalleId || !reservationDate) {
+      setError("Veuillez choisir une salle et une date.");
       return;
     }
-    try {
-      const dateDebutValue = new Date(dateDebut);
-      const dateFinValue = new Date(dateFin);
-      const toBackend = (d) => d.toISOString().slice(0, 19);
+    if (
+      selectedStartSlotIndex === null ||
+      selectedEndSlotIndex === null ||
+      availableSlots.length === 0
+    ) {
+      setError("Veuillez choisir un créneau de début et un créneau de fin.");
+      return;
+    }
 
+    const startIndex = Math.min(selectedStartSlotIndex, selectedEndSlotIndex);
+    const endIndex = Math.max(selectedStartSlotIndex, selectedEndSlotIndex);
+
+    const startSlot = availableSlots[startIndex];
+    const endSlot = availableSlots[endIndex];
+
+    setMessage("");
+    setError("");
+    try {
+      const toBackend = (d) => d.toISOString().slice(0, 19);
       await api.createReservation(
         Number(selectedSalleId),
-        toBackend(dateDebutValue),
-        toBackend(dateFinValue)
+        toBackend(startSlot.startDate),
+        toBackend(endSlot.endDate)
       );
       setMessage("Réservation créée avec succès.");
       await loadReservations();
+      await loadSlots();
+      setSelectedStartSlotIndex(null);
+      setSelectedEndSlotIndex(null);
     } catch (err) {
       setError(err.message);
     }
@@ -154,39 +235,108 @@ function App() {
   };
 
   useEffect(() => {
+    if (view !== "app") {
+      return;
+    }
     if (activeTab === "salles") {
       loadSalles();
     }
     if (activeTab === "reservations") {
       loadReservations();
     }
-  }, [activeTab]);
+    if (activeTab === "reservation" && selectedSalleId && reservationDate) {
+      loadSlots();
+    }
+  }, [view, activeTab, selectedSalleId, reservationDate]);
 
-  return (
-    <div className="app">
-      <header className="header">
-        <h1>EasyBooking</h1>
-        <div className="header-right">
-          {isLoggedIn ? (
-            <>
-              <span className="badge">Connecté</span>
-              <button className="btn secondary" onClick={handleLogout}>
-                Déconnexion
-              </button>
-            </>
-          ) : (
-            <span className="badge badge-muted">Non connecté</span>
-          )}
-        </div>
-      </header>
+  const renderAuth = () => (
+    <main className="content">
+      {message && <div className="alert success">{message}</div>}
+      {error && <div className="alert error">{error}</div>}
 
+      {view === "login" && (
+        <section className="card auth-card">
+          <h2>Connexion</h2>
+          <form onSubmit={handleLogin} className="form">
+            <label>
+              Email
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Mot de passe
+              <input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                required
+              />
+            </label>
+            <button className="btn primary" type="submit">
+              Se connecter
+            </button>
+          </form>
+          <p className="auth-switch">
+            Pas de compte ?{" "}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => setView("register")}
+            >
+              Créer un compte
+            </button>
+          </p>
+        </section>
+      )}
+
+      {view === "register" && (
+        <section className="card auth-card">
+          <h2>Créer un compte</h2>
+          <form onSubmit={handleRegister} className="form">
+            <label>
+              Email
+              <input
+                type="email"
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Mot de passe
+              <input
+                type="password"
+                value={registerPassword}
+                onChange={(e) => setRegisterPassword(e.target.value)}
+                required
+              />
+            </label>
+            <button className="btn primary" type="submit">
+              S'inscrire
+            </button>
+          </form>
+          <p className="auth-switch">
+            Déjà un compte ?{" "}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => setView("login")}
+            >
+              Se connecter
+            </button>
+          </p>
+        </section>
+      )}
+    </main>
+  );
+
+  const renderApp = () => (
+    <>
       <nav className="tabs">
-        <button
-          className={`tab ${activeTab === "auth" ? "active" : ""}`}
-          onClick={() => setActiveTab("auth")}
-        >
-          Connexion / Inscription
-        </button>
         <button
           className={`tab ${activeTab === "salles" ? "active" : ""}`}
           onClick={() => setActiveTab("salles")}
@@ -213,86 +363,6 @@ function App() {
         {message && <div className="alert success">{message}</div>}
         {error && <div className="alert error">{error}</div>}
 
-        {activeTab === "auth" && (
-          <section className="card auth-card">
-            {activeAuthView === "login" ? (
-              <>
-                <h2>Connexion</h2>
-                <form onSubmit={handleLogin} className="form">
-                  <label>
-                    Email
-                    <input
-                      type="email"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Mot de passe
-                    <input
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
-                    />
-                  </label>
-                  <button className="btn primary" type="submit">
-                    Se connecter
-                  </button>
-                </form>
-                <p className="auth-switch">
-                  Pas de compte ?{" "}
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => setActiveAuthView("register")}
-                  >
-                    Créer un compte
-                  </button>
-                </p>
-              </>
-            ) : (
-              <>
-                <h2>Créer un compte</h2>
-                <form onSubmit={handleRegister} className="form">
-                  <label>
-                    Email
-                    <input
-                      type="email"
-                      value={registerEmail}
-                      onChange={(e) => setRegisterEmail(e.target.value)}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Mot de passe
-                    <input
-                      type="password"
-                      value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
-                      required
-                    />
-                  </label>
-                  <button className="btn primary" type="submit">
-                    S'inscrire
-                  </button>
-                </form>
-                <p className="auth-switch">
-                  Déjà un compte ?{" "}
-                  <button
-                    type="button"
-                    className="link-button"
-                    onClick={() => setActiveAuthView("login")}
-                  >
-                    Se connecter
-                  </button>
-                </p>
-              </>
-            )}
-          </section>
-        )}
-
         {activeTab === "salles" && (
           <section>
             <div className="section-header">
@@ -313,6 +383,17 @@ function App() {
                       <h3>{salle.nom || `Salle #${salle.id}`}</h3>
                       {salle.capacite && <p>Capacité: {salle.capacite}</p>}
                     </div>
+                    <div className="actions">
+                      <button
+                        className="btn primary"
+                        onClick={() => {
+                          setSelectedSalleId(String(salle.id));
+                          setActiveTab("reservation");
+                        }}
+                      >
+                        Voir les créneaux
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -321,12 +402,12 @@ function App() {
         )}
 
         {activeTab === "reservation" && (
-          <section className="card">
+          <section>
             <h2>Réserver une salle</h2>
             {!isLoggedIn && (
               <p>Vous devez être connecté pour créer une réservation.</p>
             )}
-            <form onSubmit={handleCreateReservation} className="form">
+            <form className="form simple-form">
               <label>
                 Salle
                 <select
@@ -344,27 +425,90 @@ function App() {
                 </select>
               </label>
               <label>
-                Date et heure de début
+                Date
                 <input
-                  type="datetime-local"
-                  value={formatDateTimeLocal(dateDebut)}
-                  onChange={(e) => setDateDebut(e.target.value)}
+                  type="date"
+                  value={reservationDate}
+                  onChange={(e) => setReservationDate(e.target.value)}
                   required
                 />
               </label>
-              <label>
-                Date et heure de fin
-                <input
-                  type="datetime-local"
-                  value={formatDateTimeLocal(dateFin)}
-                  onChange={(e) => setDateFin(e.target.value)}
-                  required
-                />
-              </label>
-              <button className="btn primary" type="submit">
-                Réserver
-              </button>
             </form>
+            <div style={{ marginTop: "8px" }}>
+              {slotsLoading ? (
+                <p>Chargement des créneaux disponibles...</p>
+              ) : reservationDate && selectedSalleId ? (
+                availableSlots.length === 0 ? (
+                  <p>Aucun créneau disponible pour cette date.</p>
+                ) : (
+                  <>
+                    <p style={{ fontSize: "0.85rem", marginBottom: "4px" }}>
+                      Créneau de début :
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "4px"
+                      }}
+                    >
+                      {availableSlots.map((slot, index) => (
+                        <button
+                          key={`start-${slot.label}`}
+                          className={`btn secondary${
+                            selectedStartSlotIndex === index ? " slot-selected" : ""
+                          }`}
+                          type="button"
+                          onClick={() => setSelectedStartSlotIndex(index)}
+                        >
+                          {slot.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "0.85rem",
+                        marginTop: "8px",
+                        marginBottom: "4px"
+                      }}
+                    >
+                      Créneau de fin :
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "4px"
+                      }}
+                    >
+                      {availableSlots.map((slot, index) => (
+                        <button
+                          key={`end-${slot.label}`}
+                          className={`btn secondary${
+                            selectedEndSlotIndex === index ? " slot-selected" : ""
+                          }`}
+                          type="button"
+                          onClick={() => setSelectedEndSlotIndex(index)}
+                        >
+                          {slot.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ marginTop: "8px" }}>
+                      <button
+                        className="btn primary"
+                        type="button"
+                        onClick={handleConfirmRange}
+                      >
+                        Réserver ce créneau
+                      </button>
+                    </div>
+                  </>
+                )
+              ) : (
+                <p>Sélectionnez une salle et une date pour voir les créneaux.</p>
+              )}
+            </div>
           </section>
         )}
 
@@ -424,6 +568,30 @@ function App() {
           </section>
         )}
       </main>
+    </>
+  );
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1>EasyBooking</h1>
+        <div className="header-right">
+          {isLoggedIn && view === "app" ? (
+            <>
+              <span className="badge">Connecté</span>
+              <button className="btn secondary" onClick={handleLogout}>
+                Déconnexion
+              </button>
+            </>
+          ) : (
+            <span className="badge badge-muted">
+              {view === "register" ? "Inscription" : "Connexion requise"}
+            </span>
+          )}
+        </div>
+      </header>
+
+      {view === "app" ? renderApp() : renderAuth()}
     </div>
   );
 }
