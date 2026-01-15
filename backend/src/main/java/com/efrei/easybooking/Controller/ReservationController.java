@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,5 +55,20 @@ public class ReservationController {
 
         List<Reservation> reservations = reservationService.getReservationsByUser(userId);
         return ResponseEntity.ok(reservations);
+    }
+
+    @DeleteMapping("/reservations/{id}")
+    public ResponseEntity<String> supprimerReservation(@PathVariable("id") Long reservationId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Vous devez être connecté");
+        }
+
+        try {
+            reservationService.supprimerReservationPourUtilisateur(reservationId, userId);
+            return ResponseEntity.ok("Réservation supprimée avec succès");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

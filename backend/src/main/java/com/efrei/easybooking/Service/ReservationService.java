@@ -55,4 +55,16 @@ public class ReservationService {
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
         return reservationRepository.findByUtilisateur(utilisateur);
     }
+
+    public void supprimerReservationPourUtilisateur(Long reservationId, Long userId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));
+
+        if (reservation.getUtilisateur() == null || reservation.getUtilisateur().getId() == null
+                || !reservation.getUtilisateur().getId().equals(userId)) {
+            throw new RuntimeException("Vous ne pouvez supprimer que vos propres réservations");
+        }
+
+        reservationRepository.delete(reservation);
+    }
 }

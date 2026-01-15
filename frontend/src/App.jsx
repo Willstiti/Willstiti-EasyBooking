@@ -85,6 +85,7 @@ function App() {
     setError("");
     try {
       const data = await api.getSalles();
+      console.log("API /salles response:", data);
       // On s'assure que salles est toujours un tableau
       const list = Array.isArray(data) ? data : [];
       setSalles(list);
@@ -134,6 +135,18 @@ function App() {
         toBackend(dateFinValue)
       );
       setMessage("Réservation créée avec succès.");
+      await loadReservations();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeleteReservation = async (id) => {
+    setMessage("");
+    setError("");
+    try {
+      await api.deleteReservation(id);
+      setMessage("Réservation supprimée avec succès.");
       await loadReservations();
     } catch (err) {
       setError(err.message);
@@ -395,6 +408,14 @@ function App() {
                           ? new Date(r.dateFin).toLocaleString()
                           : "N/A"}
                       </p>
+                    </div>
+                    <div className="actions">
+                      <button
+                        className="btn danger"
+                        onClick={() => handleDeleteReservation(r.id)}
+                      >
+                        Supprimer
+                      </button>
                     </div>
                   </div>
                 ))}

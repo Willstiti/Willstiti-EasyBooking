@@ -52,6 +52,11 @@ export const api = {
       body: JSON.stringify({ salleId, dateDebut, dateFin })
     }),
 
-  getMesReservations: () => request("/reservations")
+  getMesReservations: () => request("/reservations"),
+
+  deleteReservation: (id) =>
+    request(`/reservations/${id}`, {
+      method: "DELETE"
+    })
 };
 
