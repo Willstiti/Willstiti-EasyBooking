@@ -26,7 +26,6 @@ Le backend dispose d’une suite de tests structurée en plusieurs niveaux :
 - **Tests d’intégration** : services testés avec le contexte Spring complet et une base de données de test (ex. `ReservationServiceIntegrationTest`) – **13 tests**.  
 - **Tests de performance** : mesure du temps d’exécution de scénarios critiques (`AuthServicePerformanceTest`, `ReservationServicePerformanceTest`) – **15 tests**.  
 - **Tests système / API** : tests de contrôleurs via `MockMvc` (`AuthControllerSystemTest`) – **10 tests**.  
-- **Test de démarrage global** : `EasyBookingApplicationTests` vérifie que le contexte Spring démarre correctement – **1 test**.
 
 Nombre total de tests : **55** méthodes annotées `@Test` dans `backend/src/test/java`.
 
@@ -68,8 +67,6 @@ Les tests sont dans `src/test/java/com/efrei/easybooking` et couvrent plusieurs 
   - `ReservationServicePerformanceTest`
 - **Tests système / API (MockMvc)** – **10 tests**  
   - `AuthControllerSystemTest`
-- **Test de démarrage global** – **1 test**  
-  - `EasyBookingApplicationTests` (`contextLoads`)
 
 Nombre total de tests : **55** méthodes annotées `@Test`.
 
