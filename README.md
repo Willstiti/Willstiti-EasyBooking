@@ -1,3 +1,44 @@
+## EasyBooking – Projet global
+
+### 1. Présentation
+
+EasyBooking est une application de réservation de salles, construite avec un backend Java/Spring Boot et (potentiellement) un frontend séparé.  
+Ce dépôt contient au minimum le **backend** dans le dossier `backend/`.
+
+### 2. Structure du dépôt
+
+- `backend/` : application Spring Boot EasyBooking (API REST, services métier, accès base de données, tests).
+- `.github/` : fichiers liés à GitHub (README spécifique GitHub, workflows éventuels, etc.).
+
+### 3. Technologies principales (backend)
+
+- **Langage** : Java (Spring Boot)
+- **Framework backend** : Spring Boot (injection de dépendances, configuration auto, tests `@SpringBootTest`)
+- **Web** : Spring Web MVC (`@RestController`, `@GetMapping`, `@PostMapping`, `@DeleteMapping`)
+- **Accès aux données** : Spring Data JPA (`ReservationRepository`, `SalleRepository`, `UtilisateurRepository`)
+- **Sécurité** : Spring Security (configurée dans `SecurityConfig`, filtres désactivés en profil `test` pour certains tests)
+
+### 4. Qualité & tests (synthèse backend)
+
+Le backend dispose d’une suite de tests structurée en plusieurs niveaux :
+
+- **Tests unitaires** : services testés isolément avec des mocks (ex. `ReservationServiceTest`, `AuthServiceTest`).  
+- **Tests d’intégration** : services testés avec le contexte Spring complet et une base de données de test (ex. `ReservationServiceIntegrationTest`).  
+- **Tests de performance** : mesure du temps d’exécution de scénarios critiques (`AuthServicePerformanceTest`, `ReservationServicePerformanceTest`).  
+- **Tests système / API** : tests de contrôleurs via `MockMvc` (`AuthControllerSystemTest`).  
+- **Test de démarrage global** : `EasyBookingApplicationTests` vérifie que le contexte Spring démarre correctement.
+
+Nombre total de tests : **47** méthodes annotées `@Test` dans `backend/src/test/java`.
+
+Pour un **détail complet des tests backend** (tableaux par classe de test, description de chaque méthode de test et de son comportement attendu), se référer à la section suivante.
+
+---
+
+## Détail qualité backend
+
+Le contenu ci-dessous provient du fichier `backend/README.md` et est recopié ici pour avoir une vue globale du projet, sans perte d’information.
+
+
 ## EasyBooking – Backend
 
 ### 1. Contexte et technologies
